@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" ng-app="portfolioSim">
+<head>
+  <meta charset="utf-8">
+  <title>Portfolio Simulator</title>
+  <link rel="stylesheet" href="/css/nv.d3.min.css"/>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body ng-controller="portfolioSimCtrl" style="margin:20px">
+	<form novalidate class="user-input-form">
+		<!-- start and end date selection -->
+		<div ng-controller="datePickerCtrl">
+		    <div class="row">
+		        <div class="col-md-3">
+		        	<B>Start Date:</B>
+		            <p class="input-group">
+		            <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="start_dt" ng-change="updateDate()" is-open="is_start_open" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+		              <span class="input-group-btn">
+		                <button type="button" class="btn btn-default" ng-click="start_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+		              </span>
+		            </p>
+		    	</div>
+		        <div class="col-md-3">
+		        	<B>End Date:</B>
+		            <p class="input-group">
+		              <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="end_dt" ng-change="updateDate()" is-open="is_end_open" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+		              <span class="input-group-btn">
+		                <button type="button" class="btn btn-default" ng-click="end_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+		              </span>
+		            </p>
+		    	</div>
+    		</div>
+		</div>
+		<!-- end of start and end date selection -->
+
+		<B>How would you like to invest:</B>
+		<!-- radio buttons for investment type-->
+		<div class="radio">
+			<label><input type="radio" ng-model="investment_type" value="product_wise" ng-change="clearSelectedCheckBoxes()"/>Product wise</label>
+		</div>
+		<div class="radio">
+			<label><input type="radio" ng-model="investment_type" value="sector_wise" ng-change="clearSelectedCheckBoxes()"/>Sector wise</label>
+		</div>
+
+		<!-- checkboxes to select products for investment-->
+		<label ng-show="investment_type === 'product_wise'">Select products in which you like to invest</label><br>
+  		<table ng-show="investment_type === 'product_wise'">
+  			<tr ng-repeat="productRow in products track by $index">
+  				<td ng-repeat="product in productRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="product" value="{{product}}">{{product}}</td>
+  			</tr>
+  		</table>
+  		
+  		<!-- checkboxes to select sectors for investment-->
+  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest </label><br>
+	  	<table ng-show="investment_type === 'sector_wise'">
+  			<tr ng-repeat="sectorRow in sectors track by $index">
+  				<td ng-repeat="sector in sectorRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="sector" value="{{sector}}">{{sector}}</td>
+  			</tr>
+  		</table>
+
+  		<!-- pie chart indicating products investment-->
+  		<div ng-show="investment_type === 'product_wise'" ng-controller="PieChartCtrl">
+			<nvd3 options="options" data="data"></nvd3>
+		</div>
+
+		<!-- pie chart indicating sectors investment-->
+  		<div ng-show="investment_type === 'sector_wise'" ng-controller="PieChartCtrl">
+			<!--<nvd3 options="options" data="data"></nvd3>-->
+			<div fc-chart fc-width="400" fc-height="300" fc-type="pie3d", fc-datasource="{{dataSource}}"></div>
+		</div>
+
+  		<!-- botton to trigger simulation based on user input --> 
+    	<button class="btn btn-primary" ng-click="simulate()">Simulate</button>
+	</form>
+
+<!-- scripts section -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
+<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0.js"></script>
+<script type="text/javascript" src="/js/fusioncharts.js"></script>
+<script type="text/javascript" src="/js/fusioncharts.charts.js"></script>
+<script type="text/javascript" src="/js/fusioncharts.theme.ocean.js"></script>
+<script type="text/javascript" src="/js/d3.min.js"></script>
+<script type="text/javascript" src="/js/nv.d3.min.js"></script>
+<script type="text/javascript" src="/js/angular-nvd3.js"></script>
+<script type="text/javascript" src="/js/angular_script.js"></script>
+<script type="text/javascript" src="/js/checklist-model.js"></script>
+<script type="text/javascript" src= "/js/fusioncharts/angular-fusioncharts.min.js"></script>
+</body>
+</html>
