@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>Portfolio Simulator</title>
   <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-table.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body ng-controller="portfolioSimCtrl" style="margin:20px">
@@ -31,7 +32,13 @@
 		    	</div>
     		</div>
 		</div>
-		<!-- end of start and end date selection -->
+
+        <!-- How much amount to invest -->
+        <div class="input-group col-sm-2">
+      		<div class="input-group-addon">$</div>
+      		<input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount" ng-model='amount'>
+      		<div class="input-group-addon">.00</div>
+    	</div>
 
 		<B>How would you like to invest:</B>
 		<!-- radio buttons for investment type-->
@@ -42,35 +49,27 @@
 			<label><input type="radio" ng-model="investment_type" value="sector_wise"/>Sector wise</label>
 		</div>
 
-		<!-- checkboxes to select products for investment-->
 		<label ng-show="investment_type === 'product_wise'">Select products in which you like to invest</label><br>
-  		<!--<table ng-show="investment_type === 'product_wise'">
+  		<table data-toggle="table" ng-show="investment_type === 'product_wise'">
   			<tr ng-repeat="productRow in products track by $index">
-  				<td ng-repeat="product in productRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="product" value="{{product}}">{{product}}
-  				<div ng-controller="PieChartCtrl">
-  					<input type=range min=10000 max=100000 value={{sliderData}} ng-model="aa" ng-change="chart.data[1][1]=1*aa">
-  				</div>
+  				<td ng-repeat="product in productRow">
+  					<label><input type="checkbox"  ng-true-value='1' ng-false-value='0' ng-model='product.check' ng-change="count_product_checkbox(product)">{{product.key}}</label>
+  					<input type='range' min='0' max='100' value={{product.value}} ng-model="product.value" ng-change="change_slider()">
   				</td>
   			</tr>
-  		</table> -->
-
-  		<div ng-show="investment_type === 'product_wise'">
-  			<div ng-repeat="product in products track by $index">
-  				<label><input type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='product.check' ng-change="count_product_checkbox(product)">{{product.key}}</label>
-  				<!--<input type='range' min='0' max='10' value='{{product.value}}' ng-model="product.value">-->
-  			</div>
-  		</div>	
-
-  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest</label><br>
-  		<div ng-show="investment_type === 'sector_wise'">
-  			<div ng-repeat="sector in sectors track by $index">
-  				<label><input type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='sector.check' ng-change="count_sector_checkbox(sector)">{{sector.key}}</label>
-  				<!--<input type='range' min='0' max='10' value='{{sector.value}}' ng-model="sector.value">-->
-  			</div>
-  		</div>
-  				
+  		</table>
   		
-  		<div ng-controller="PieChartCtrl" ng-show="product_checkBox_counter !=0 || sector_checkBox_counter!=0">
+  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest</label><br>
+  		<table data-toggle="table" ng-show="investment_type === 'sector_wise'">
+  			<tr ng-repeat="sectorRow in sectors track by $index">
+  				<td ng-repeat="sector in sectorRow">
+  					<label><input style="'display:inline'" type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='sector.check' ng-change="count_sector_checkbox(sector)">{{sector.key}}</label>
+  					<input type='range' style="'display:inline'" min='0' max='100' value='{{sector.value}}' ng-model="sector.value" ng-change="change_slider()">
+  				</td>
+  			</tr>
+  		</table>
+  				
+  		<div ng-controller="PieChartCtrl" ng-show="(product_checkBox_counter !=0 && investment_type === 'product_wise') ||(sector_checkBox_counter!=0 && investment_type === 'sector_wise')">
 			<div google-chart chart="chart" style="border:1px inset black;padding:0;width:300px"></div>
 		</div>
 
@@ -79,10 +78,13 @@
 	</form>
 
 <!-- scripts section -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
 <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0.js"></script>
 <script type="text/javascript" src="/js/angular_script.js"></script>
 <script src="http://bouil.github.io/angular-google-chart/ng-google-chart.js"></script>
+<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js'></script>
+<script type="text/javascript" src='/js/bootstrap-table.js'></script>-->
 </body>
 </html>

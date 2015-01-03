@@ -6,20 +6,23 @@
 		    $scope.start_date = null;
 	        $scope.end_date = null;
 	        $scope.investment_type = null;
-	        $scope.sectors = sectors;
-	        $scope.products = products;
+	        $scope.sectors = [];
+	        $scope.products = [];
 	        $scope.product_checkBox_counter = 0;
 	        $scope.sector_checkBox_counter = 0;
+	        $scope.slider_changed = 0;
+	        $scope.amount = 0;
 
-	        /*
+	        
 	        //populate product and sectors array creating 2D array
+	        //step indicate number of columns
 			for (var i = 0 ; i< products.length; i += 5) {
     			$scope.products.push(products.slice(i, i + 5));
 			}
 
 			for (var i = 0 ; i< sectors.length; i += 5) {
     			$scope.sectors.push(sectors.slice(i, i + 5));
-			}*/
+			}
 
 	        //list listerns to update parent controller if there is some change in child controllers
 	        $scope.$on("update_parent_controller_start_date", function(event, start_date) {
@@ -37,10 +40,6 @@
     	   		}else{
     	   			$scope.product_checkBox_counter += 1;
     	   		}
-    	   		for(var i = 0;i<products.length;i++){
-    	   			console.log(products[i].key + " " + products[i].value + " " + products[i].check);
-    	   		}
-    	   		console.log($scope.product_checkBox_counter);
     	   	};
 
     	   	$scope.count_sector_checkbox = function(sector){
@@ -50,6 +49,21 @@
     	   		}else{
     	   			$scope.sector_checkBox_counter += 1;
     	   		}
+    	   	};
+
+    	   	$scope.change_slider = function(){
+    	   		console.log("slider changed");
+    	   		if($scope.investment_type == "product_wise"){
+    	   			for(var i = 0;i<products.length;i++){
+    	   				console.log(products[i].key + " " + products[i].value + " " + typeof products[i].value+ " "+ products[i].check);
+    	   			}
+    	   		}else{
+    	   			for(var i = 0;i<sectors.length;i++){
+    	   				console.log(sectors[i].key + " " + sectors[i].value + " " + sectors[i].check);
+    	   			}
+    	   		}
+    	   		$scope.slider_changed += 1;
+    	   		console.log($scope.slider_changed);
     	   	};
 		}])
 		.controller('datePickerCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
@@ -87,8 +101,12 @@
 			var chartData = [['Component', 'cost']];
 
 			//call when checkbox state is changed --> reset pie chart
-			var checkbox_count_changes = function(){
+			var checkbox_count_changes = function(oldval, newval){
+				if(oldval === newval){
+					return;
+				}
 			 	//clear chartData -- > we cannot unnecessarily create new objects eveytime
+			 	console.log("checkbox_count_changes kicks in");
     	   		while(chartData.length > 1) {
     				chartData.pop();
 				}   	   		
@@ -102,6 +120,9 @@
 			    		}
 			    		chartData.push([products[i].key,products[i].value]);
 			    	}
+			    	for(var i = 0;i<products.length;i++){
+    	   				console.log(products[i].key + " " + products[i].value + " " + typeof products[i].value + " " + products[i].check);
+    	   			}
 			    }
 
 			    if($scope.investment_type == 'sector_wise'){
@@ -117,24 +138,33 @@
 			    render_chart();
 			};
 
-			var investment_type_changes = function(){
+			var investment_type_changes = function(oldval,newval){
+				if(oldval === newval){
+					return;
+				}
+				console.log("investment_type_changes" + $scope.investment_type);
 				while(chartData.length > 1) {
     				chartData.pop();
 				}   	   		
     	   	
 			    if($scope.investment_type == 'product_wise'){
 			    	for(var i=0;i<products.length;i++){
-			    		chartData.push([products[i].key,products[i].value]);
+			    		chartData.push([products[i].key,Number(products[i].value)]);
 			    	}
 			    }
 
 			    if($scope.investment_type == 'sector_wise'){
 			    	for(var i=0;i<sectors.length;i++){
-			    		chartData.push([sectors[i].key,sectors[i].value]);
+			    		chartData.push([sectors[i].key,Number(sectors[i].value)]);
 			    	}
 			    }
+			    console.log("re rendering chart");
 			    render_chart();
 			}
+
+			var slider_changes = function(oldval, newval){
+				investment_type_changes(oldval,newval);
+			};
 
 		    var render_chart =  function(){
 	        	$scope.chart = {
@@ -155,10 +185,11 @@
 	        		}
 	        	};
         	}
-	    
-		    $scope.$watch(function(scope){return ($scope.product_checkBox_counter + $scope.sector_checkBox_counter)}, 
+	    	//watches to trigger re-rendering of chart on change of user input
+		    $scope.$watch(function(scope){return (scope.product_checkBox_counter + scope.sector_checkBox_counter)}, 
 		    	                          checkbox_count_changes);
-		    $scope.$watch(function(scope){return $scope.investment_type},investment_type_changes);
+		    $scope.$watch(function(scope){return scope.investment_type},investment_type_changes);
+		    $scope.$watch(function(scope){return scope.slider_changed},slider_changes);
 		});
             	
 	
