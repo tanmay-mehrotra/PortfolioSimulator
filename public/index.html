@@ -37,37 +37,42 @@
 		<B>How would you like to invest:</B>
 		<!-- radio buttons for investment type-->
 		<div class="radio">
-			<label><input type="radio" ng-model="investment_type" value="product_wise" ng-change="clearSelectedCheckBoxes()"/>Product wise</label>
+			<label><input type="radio" ng-model="investment_type" value="product_wise"/>Product wise</label>
 		</div>
 		<div class="radio">
-			<label><input type="radio" ng-model="investment_type" value="sector_wise" ng-change="clearSelectedCheckBoxes()"/>Sector wise</label>
+			<label><input type="radio" ng-model="investment_type" value="sector_wise"/>Sector wise</label>
 		</div>
 
 		<!-- checkboxes to select products for investment-->
 		<label ng-show="investment_type === 'product_wise'">Select products in which you like to invest</label><br>
-  		<table ng-show="investment_type === 'product_wise'">
+  		<!--<table ng-show="investment_type === 'product_wise'">
   			<tr ng-repeat="productRow in products track by $index">
-  				<td ng-repeat="product in productRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="product" value="{{product}}">{{product}}</td>
+  				<td ng-repeat="product in productRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="product" value="{{product}}">{{product}}
+  				<div ng-controller="PieChartCtrl">
+  					<input type=range min=10000 max=100000 value={{sliderData}} ng-model="aa" ng-change="chart.data[1][1]=1*aa">
+  				</div>
+  				</td>
   			</tr>
-  		</table>
+  		</table> -->
+
+  		<div ng-show="investment_type === 'product_wise'">
+  			<div ng-repeat="product in products track by $index">
+  				<label><input type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='product.check' ng-change="count_product_checkbox(product)">{{product.key}}</label>
+  				<!--<input type='range' min='0' max='10' value='{{product.value}}' ng-model="product.value">-->
+  			</div>
+  		</div>	
+
+  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest</label><br>
+  		<div ng-show="investment_type === 'sector_wise'">
+  			<div ng-repeat="sector in sectors track by $index">
+  				<label><input type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='sector.check' ng-change="count_sector_checkbox(sector)">{{sector.key}}</label>
+  				<!--<input type='range' min='0' max='10' value='{{sector.value}}' ng-model="sector.value">-->
+  			</div>
+  		</div>
+  				
   		
-  		<!-- checkboxes to select sectors for investment-->
-  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest </label><br>
-	  	<table ng-show="investment_type === 'sector_wise'">
-  			<tr ng-repeat="sectorRow in sectors track by $index">
-  				<td ng-repeat="sector in sectorRow"><input type="checkbox" checklist-model="selectedCheckBoxes" checklist-value="sector" value="{{sector}}">{{sector}}</td>
-  			</tr>
-  		</table>
-
-  		<!-- pie chart indicating products investment-->
-  		<div ng-show="investment_type === 'product_wise'" ng-controller="PieChartCtrl">
-			<nvd3 options="options" data="data"></nvd3>
-		</div>
-
-		<!-- pie chart indicating sectors investment-->
-  		<div ng-show="investment_type === 'sector_wise'" ng-controller="PieChartCtrl">
-			<!--<nvd3 options="options" data="data"></nvd3>-->
-			<div fc-chart fc-width="400" fc-height="300" fc-type="pie3d", fc-datasource="{{dataSource}}"></div>
+  		<div ng-controller="PieChartCtrl" ng-show="product_checkBox_counter !=0 || sector_checkBox_counter!=0">
+			<div google-chart chart="chart" style="border:1px inset black;padding:0;width:300px"></div>
 		</div>
 
   		<!-- botton to trigger simulation based on user input --> 
@@ -78,14 +83,7 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
 <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0.js"></script>
-<script type="text/javascript" src="/js/fusioncharts.js"></script>
-<script type="text/javascript" src="/js/fusioncharts.charts.js"></script>
-<script type="text/javascript" src="/js/fusioncharts.theme.ocean.js"></script>
-<script type="text/javascript" src="/js/d3.min.js"></script>
-<script type="text/javascript" src="/js/nv.d3.min.js"></script>
-<script type="text/javascript" src="/js/angular-nvd3.js"></script>
 <script type="text/javascript" src="/js/angular_script.js"></script>
-<script type="text/javascript" src="/js/checklist-model.js"></script>
-<script type="text/javascript" src= "/js/fusioncharts/angular-fusioncharts.min.js"></script>
+<script src="http://bouil.github.io/angular-google-chart/ng-google-chart.js"></script>
 </body>
 </html>
