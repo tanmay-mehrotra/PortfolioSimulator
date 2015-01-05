@@ -3,79 +3,163 @@
 <head>
   <meta charset="utf-8">
   <title>Portfolio Simulator</title>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/bootstrap-table.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.5.0/bootstrap-table.min.css"/>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body ng-controller="portfolioSimCtrl" style="margin:20px">
-	<form novalidate class="user-input-form">
+<body ng-controller="portfolioSimCtrl">
+<div class="container">	
+	<form novalidate role="form">
 		<!-- start and end date selection -->
 		<div ng-controller="datePickerCtrl">
-		    <div class="row">
+			<div class="row">
 		        <div class="col-md-3">
-		        	<B>Start Date:</B>
-		            <p class="input-group">
-		            <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="start_dt" ng-change="updateDate()" is-open="is_start_open" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
-		              <span class="input-group-btn">
-		                <button type="button" class="btn btn-default" ng-click="start_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-		              </span>
-		            </p>
+		        	<label for='start_date'><B>Start Date</B></label>
+		            <div class="input-group">
+			            <input id='start_date' type="text" class="form-control" datepicker-popup="{{format}}" ng-model="start_dt" ng-change="updateDate()" is-open="is_start_open" datepicker-options="dateOptions" ng-required="true" close-text="Close"/>
+			            <span class="input-group-btn">
+			                <button type="button" class="btn btn-default" ng-click="start_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+			            </span>
+		            </div>
 		    	</div>
 		        <div class="col-md-3">
-		        	<B>End Date:</B>
-		            <p class="input-group">
-		              <input type="text" class="form-control" datepicker-popup="{{format}}" ng-model="end_dt" ng-change="updateDate()" is-open="is_end_open" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
-		              <span class="input-group-btn">
-		                <button type="button" class="btn btn-default" ng-click="end_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
-		              </span>
-		            </p>
+		        	<label for='end_date'><B>End Date</B></label>
+		            <div class="input-group">
+			            <input id='end_date' type="text" class="form-control" datepicker-popup="{{format}}" ng-model="end_dt" ng-change="updateDate()" is-open="is_end_open" datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+			            <span class="input-group-btn">
+			            	<button type="button" class="btn btn-default" ng-click="end_open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+			            </span>
+		            </div>
 		    	</div>
     		</div>
 		</div>
 
-        <!-- How much amount to invest -->
-        <div class="input-group col-sm-2">
-      		<div class="input-group-addon">$</div>
-      		<input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount" ng-model='amount'>
-      		<div class="input-group-addon">.00</div>
-    	</div>
-
-		<B>How would you like to invest:</B>
-		<!-- radio buttons for investment type-->
-		<div class="radio">
-			<label><input type="radio" ng-model="investment_type" value="product_wise"/>Product wise</label>
+        <!-- Input for total amount to be investested -->
+        <div class='row'>
+        	<div class='col-md-2'>
+		        <label for="Amount"><B>Amount to be invested</B></label>
+		        <div class="input-group">
+		      		<div class="input-group-addon">$</div>
+		      		<input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount" ng-model='amount'>
+		      		<div class="input-group-addon">.00</div>
+		    	</div>
+	        </div>
+	    </div>
+	    
+	    <!-- radio buttons to select type of investment-->
+	    <div class='row'>
+	    	<div class='col-md-6'>
+				<label><B>How would you like to invest:</B></label>
+				<label class="radio-inline">
+					<input type="radio" ng-model="investment_type" id="product_radio" value="product_wise"/>
+					Product Wise
+				</label>
+				<label class="radio-inline">
+					<input type="radio" ng-model="investment_type" id="sector_radio" value="sector_wise"/>
+					Sector Wise
+				</label>
+			</div>
 		</div>
-		<div class="radio">
-			<label><input type="radio" ng-model="investment_type" value="sector_wise"/>Sector wise</label>
+
+		<!--code to handle investment in products-->
+		<div id='div_for_products'>
+			<div ng-show="investment_type === 'product_wise'">
+				<div class='row'>
+					<div class='col-md-6'>
+				  		<label for='select_product'>Select products in which you like to invest</label>
+				  	</div>
+				</div>
+				<div class='row'>
+				  	<div class='col-md-2'>
+						<select id='select_product' class='form-control' ng-model="selected_product" ng-options="product.key for product in products" ng-change="selectedProducts.push(selected_product)"></select>
+					</div>
+				</div>
+
+				<div style='margin-top:10px'>
+					<div class='row'>
+						<div class='col-md-6'>
+						  	<table class="table table-condensed table-bordered table-striped" ng-show="selectedProducts.length>0">
+						  		<thead>
+							  		<tr>
+										<th>Product</th>
+										<th>Investment</th> 
+										<th>Change Investment</th>
+										<th>Remove</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr ng-repeat="selected_product in selectedProducts track by $index">
+										<td>{{selected_product.key}}</td>
+										<td>{{selected_product.value}}</td>
+										<td><input type='range' min='0' max='100' value={{selected_product.value}} ng-model="selected_product.value" ng-change="change_slider()"></td>
+										<td><a href ng-click="selectedProducts.splice($index, 1)">X</a></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
-		<label ng-show="investment_type === 'product_wise'">Select products in which you like to invest</label><br>
-  		<table data-toggle="table" ng-show="investment_type === 'product_wise'">
-  			<tr ng-repeat="productRow in products track by $index">
-  				<td ng-repeat="product in productRow">
-  					<label><input type="checkbox"  ng-true-value='1' ng-false-value='0' ng-model='product.check' ng-change="count_product_checkbox(product)">{{product.key}}</label>
-  					<input type='range' min='0' max='100' value={{product.value}} ng-model="product.value" ng-change="change_slider()">
-  				</td>
-  			</tr>
-  		</table>
-  		
-  		<label ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest</label><br>
-  		<table data-toggle="table" ng-show="investment_type === 'sector_wise'">
-  			<tr ng-repeat="sectorRow in sectors track by $index">
-  				<td ng-repeat="sector in sectorRow">
-  					<label><input style="'display:inline'" type="checkbox" ng-true-value='1' ng-false-value='0' ng-model='sector.check' ng-change="count_sector_checkbox(sector)">{{sector.key}}</label>
-  					<input type='range' style="'display:inline'" min='0' max='100' value='{{sector.value}}' ng-model="sector.value" ng-change="change_slider()">
-  				</td>
-  			</tr>
-  		</table>
-  				
-  		<div ng-controller="PieChartCtrl" ng-show="(product_checkBox_counter !=0 && investment_type === 'product_wise') ||(sector_checkBox_counter!=0 && investment_type === 'sector_wise')">
-			<div google-chart chart="chart" style="border:1px inset black;padding:0;width:300px"></div>
+		<!-- code to handle investment in sectors-->
+		<div id='div_for_sectors'>
+			<div ng-show="investment_type === 'sector_wise'">
+				<div class='row'>
+	  				<div class='col-md-6'>
+		  				<label for='select_sector'>Select sectors in which you like to invest</label>
+		  			</div>
+		  		</div>
+		  		<div class='row'>
+			  		<div class="col-md-2">
+			  			<select id='select-sector' ng-model="selected_sector" class='form-control' ng-options="sector.key for sector in sectors" ng-change="selectedSectors.push(selected_sector)"></select>
+			  		</div>
+		  		</div>
+
+			  	<div style='margin-top:10px'>
+				  	<div class='row'>
+				  		<div class='col-md-6'>
+					  		<table class="table table-condensed table-bordered table-striped" ng-show="selectedSectors.length>0">
+						  		<tr>
+					    			<th>Sector</th>
+					    			<th>Investment</th> 
+					    			<th>Change Investment</th>
+					    			<th>Remove</th>
+					  			</tr>
+								<tr ng-repeat="selected_sector in selectedSectors track by $index">
+									<td>{{selected_sector.key}}</td>
+									<td>{{selected_sector.value}}</td>
+									<td><input type='range' min='0' max='100' value={{selected_sector.value}} ng-model="selected_sector.value" ng-change="change_slider()"></td>
+									<td><a href ng-click="selectedSectors.splice($index, 1)">X</a></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!--pie chart to show investment by percentage -->
+		<div style='margin-top:10px'>
+			<div class='row'>
+				<div class='col-md-6'>
+			  		<div ng-controller="PieChartCtrl">
+						<div google-chart chart="chart" style="border:1px inset black;width:352px" ng-show="(selectedProducts.length >0 && investment_type === 'product_wise')||(selectedSectors.length >0 && investment_type === 'sector_wise')"></div>
+					</div>
+				</div>
+			</div>
 		</div>
 
   		<!-- botton to trigger simulation based on user input --> 
-    	<button class="btn btn-primary" ng-click="simulate()">Simulate</button>
+  		<div style='margin-top:10px'>
+	  		<div class='row'>
+	  			<div class='col-md-2'>
+	    			<button class="btn btn-default" ng-click="simulate()">Simulate</button>
+	    		</div>
+	    	</div>
+	    </div>
 	</form>
+</div><!-- container closes -->
 
 <!-- scripts section -->
 
@@ -83,8 +167,8 @@
 <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0.js"></script>
 <script type="text/javascript" src="/js/angular_script.js"></script>
 <script src="http://bouil.github.io/angular-google-chart/ng-google-chart.js"></script>
-<!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js'></script>
-<script type="text/javascript" src='/js/bootstrap-table.js'></script>-->
+<script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.5.0/bootstrap-table.min.js'></script>
 </body>
 </html>
