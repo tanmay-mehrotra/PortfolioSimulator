@@ -5,13 +5,26 @@
     		//parameters needed to run the simulation
 		    $scope.start_date = null;
 	        $scope.end_date = null;
+
 	        $scope.investment_type = null;
+	        
 	        $scope.sectors = sectors;
 	        $scope.products = products;
-	        $scope.selectedProducts = [];
-	        $scope.selectedSectors = [];
-	        $scope.slider_changed = 0;
-	        $scope.amount = 0;
+	        $scope.all_items = null;
+
+	        $scope.selected_products = [];
+	        $scope.selected_sectors = [];
+	        $scope.selected_items = null;
+
+	        $scope.index_of_selected_item = null;
+	        
+	        $scope.amount = null;
+	        
+	        $scope.slider_count = 0;
+	        $scope.slider_old_value = 0;
+	        $scope.slider_new_value = 0;
+
+	        $scope.chart_data = [['Component', 'cost']];
 
 	        //list listerns to update parent controller if there is some change in child controllers
 	        $scope.$on("update_parent_controller_start_date", function(event, start_date) {
@@ -22,19 +35,48 @@
         		$scope.end_date = end_date;
       		});
 
+      		$scope.selected_radio = function(index){
+      			$scope.index_of_selected_item = index;
+      			$scope.slider_old_value = $scope.selected_items[$scope.index_of_selected_item].value;
+      			$scope.slider_new_value = $scope.selected_items[$scope.index_of_selected_item].value;
+      		};
+
     	   	$scope.change_slider = function(){
-    	   		if($scope.investment_type == "product_wise"){
-    	   			for(var i = 0;i< $scope.selectedProducts.length;i++){
-    	   				console.log( $scope.selectedProducts[i].key + " " + $scope.selectedProducts[i].value);
-    	   			}
-    	   		}else{
-    	   			for(var i = 0;i< $scope.selectedSectors.length;i++){
-    	   				console.log($scope.selectedSectors[i].key + " " + $scope.selectedSectors[i].value);
-    	   			}
+    	   		//if none of the items are selected
+    	   		if($scope.index_of_selected_item == null){
+    	   			console.log('returning');
+    	   			return;
     	   		}
-    	   		$scope.slider_changed += 1;
-    	   		console.log($scope.slider_changed);
+    	   		$scope.slider_old_value = $scope.slider_new_value;
+    	   		$scope.selected_items[$scope.index_of_selected_item].value = 
+    	   		 									Number($scope.selected_items[$scope.index_of_selected_item].value);
+    	   		$scope.slider_new_value = $scope.selected_items[$scope.index_of_selected_item].value; 									
+    	   		$scope.slider_count += 1; 
     	   	};
+
+    	   	var switch_arrays = function(){
+    	   		if($scope.investment_type == 'sector_wise'){
+    	   			$scope.selected_items = $scope.selected_sectors;
+    	   			$scope.all_items = $scope.sectors;
+    	   		}
+    	   		if($scope.investment_type == 'product_wise'){
+    	   			$scope.selected_items = $scope.selected_products;
+    	   			$scope.all_items = $scope.products;
+    	   		}
+    	   		//if none of the items are selected and someone moves the slider then it should not break
+    	   		if($scope.selected_items == null){
+    	   		    $scope.index_of_selected_item = null;
+    	   		}
+    	   	};
+
+    	   	$scope.emptychart_data = function(){
+    	   		while($scope.chart_data.length > 1) {
+    				$scope.chart_data.pop();
+				}
+    	   	};
+
+
+    	   	$scope.$watch(function(scope){return scope.investment_type}, switch_arrays);
 		}])
 		.controller('datePickerCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
 		    $scope.start_dt = new Date();
@@ -68,68 +110,75 @@
 		    $scope.format = 'dd-MMMM-yyyy'; 
 		}])
 		.controller('PieChartCtrl', function($scope){
-			var chartData = [['Component', 'cost']];
-
 			//call when checkbox state is changed --> reset pie chart
-			var new_selection = function(oldval, newval){
+			var reset_all = function(oldval, newval){
 				if(oldval === newval){
 					return;
 				}
-			 	//clear chartData -- > we cannot unnecessarily create new objects eveytime
-			 	console.log("new_selection");
-    	   		while(chartData.length > 1) {
-    				chartData.pop();
-				}   	   		
-    	   	
-			    if($scope.investment_type == 'product_wise'){
-			    	for(var i=0;i< $scope.selectedProducts.length;i++){
-			    		console.log($scope.selectedProducts[i].key + " " + 100/$scope.selectedProducts.length);
-			    		$scope.selectedProducts[i].value = 100/$scope.selectedProducts.length;
-			    		chartData.push([$scope.selectedProducts[i].key, $scope.selectedProducts[i].value]);
-			    	}
-			    }
+				if($scope.selected_items === null){
+					return;
+				}
+			 	//clear chart_data -- > we cannot unnecessarily create new objects eveytime
+    	   		$scope.emptychart_data();
+		    	for(var i=0;i< $scope.selected_items.length;i++){
+		    		$scope.selected_items[i].value = Number(($scope.amount/$scope.selected_items.length).toFixed(2));
+		    		console.log('key ' + $scope.selected_items[i].key +' value ' + $scope.selected_items[i].value);
+		    		$scope.chart_data.push([$scope.selected_items[i].key, $scope.selected_items[i].value]);
+		    	}
+			    render_chart();
+			};
 
-			    if($scope.investment_type == 'sector_wise'){
-			    	for(var i=0;i< $scope.selectedSectors.length;i++){
-			    		console.log($scope.selectedSectors[i].key + " " + 100/$scope.selectedSectors.length);
-			    		$scope.selectedSectors[i].value = 100/$scope.selectedSectors.length;
-			    		chartData.push([$scope.selectedSectors[i].key, $scope.selectedSectors[i].value]);
-			    	}
+			var investment_type_changes = function(newval,oldval){
+				if(oldval === newval){
+					return;
+				}
+				$scope.emptychart_data();	   		
+			    for(var i=0;i< $scope.selected_items.length;i++){
+			    	$scope.chart_data.push([$scope.selected_items[i].key, $scope.selected_items[i].value]);
 			    }
 			    render_chart();
 			};
 
-			var investment_type_changes = function(oldval,newval){
+			var slider_changes = function(newval,oldval){
 				if(oldval === newval){
 					return;
 				}
-				console.log("investment_type_changes" + $scope.investment_type);
-				while(chartData.length > 1) {
-    				chartData.pop();
-				}   	   		
-    	   	
-			    if($scope.investment_type == 'product_wise'){
-			    	for(var i=0;i< $scope.selectedProducts.length;i++){
-			    		chartData.push([$scope.selectedProducts[i].key, Number($scope.selectedProducts[i].value)]);
-			    	}
-			    }
-
-			    if($scope.investment_type == 'sector_wise'){
-			    	for(var i=0;i< $scope.selectedSectors.length;i++){
-			    		chartData.push([$scope.selectedSectors[i].key, Number($scope.selectedSectors[i].value)]);
-			    	}
-			    }
+				if($scope.slider_new_value === $scope.slider_old_value){
+					return;
+				}
+				$scope.emptychart_data();  	   		
+    	   		//here we need to code logic to rebalance our sliders and values
+		    	var diff = $scope.slider_new_value - $scope.slider_old_value;
+		    	if(diff > 0){
+		    		var avg_diff = Number((diff/($scope.selected_items.length-1)).toFixed(2));
+		    		for(var i=0;i< $scope.selected_items.length;i++){
+		    			if(i !== $scope.index_of_selected_item){
+		    				$scope.selected_items[i].value -= avg_diff;
+		    			}
+		    			$scope.chart_data.push([$scope.selected_items[i].key, $scope.selected_items[i].value]);	
+		    		}
+		    	}else{
+		    	    var zero_sliders = [];
+		    	    for(var i=0;i< $scope.selected_items.length;i++){
+		    	    	if($scope.selected_items[i].value == 0){
+		    	    		zero_sliders.push(i);
+		    	    	}
+		    	    }
+		    	    var avg_diff = Number((diff/($scope.selected_products.length - (zero_sliders.length+1))).toFixed(2));
+		    	    for(var i=0;i< $scope.selected_products.length;i++){
+		    	    	if(zero_sliders.indexOf(i)==-1 && (i !== $scope.index_of_selected_item)){	
+		    	    		$scope.selected_products[i].value -= avg_diff;
+		    	    	}
+		    	    	$scope.chart_data.push([$scope.selected_products[i].key, $scope.selected_products[i].value]);
+		    	    } 
+		    	}
 			    render_chart();
-			};
-
-			var slider_changes = function(oldval, newval){
-				investment_type_changes(oldval,newval);
 			};
 
 		    var render_chart =  function(){
 	        	$scope.chart = {
 	        		type : "PieChart",
-	        		data : chartData,
+	        		data : $scope.chart_data,
 	        		options :{
 	        			displayExactValues: true,
 				        width: 350,
@@ -144,12 +193,22 @@
 	      				}]
 	        		}
 	        	};
-        	}
-	    	//watches to trigger re-rendering of chart on change of user input
-		    $scope.$watch(function(scope){return (scope.selectedProducts.length + scope.selectedSectors.length)}, 
-		    	                          new_selection);
+        	};
+
+	    	//watch to trigger re-rendering of chart on selecting new product/sector
+		    $scope.$watch(function(scope){
+		    	if(scope.selected_items == null){
+		    		return null;
+		    	}else{
+		    		return scope.selected_items.length
+		    	}
+		    }, reset_all);
+		    //watch to trigger re-rendering on change of investment type
 		    $scope.$watch(function(scope){return scope.investment_type},investment_type_changes);
-		    $scope.$watch(function(scope){return scope.slider_changed},slider_changes);
+		    //watch to trigger re-rendering on change of sliding input
+		    $scope.$watch(function(scope){return scope.slider_count},slider_changes);
+		    //watch to trigger re-rendering on change of amount
+		    $scope.$watch(function(scope){return scope.amount},reset_all);
 		});
             	
 	

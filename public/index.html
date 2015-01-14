@@ -40,7 +40,7 @@
 		        <label for="Amount"><B>Amount to be invested</B></label>
 		        <div class="input-group">
 		      		<div class="input-group-addon">$</div>
-		      		<input type="text" class="form-control" id="exampleInputAmount" placeholder="Amount" ng-model='amount'>
+		      		<input type="text" class="form-control" id="inputAmount" placeholder="Amount" ng-model='amount'>
 		      		<div class="input-group-addon">.00</div>
 		    	</div>
 	        </div>
@@ -61,81 +61,52 @@
 			</div>
 		</div>
 
-		<!--code to handle investment in products-->
-		<div id='div_for_products'>
-			<div ng-show="investment_type === 'product_wise'">
+		<!--code to handle investment in products/sectors-->
+		<div id='div_for_items'>
 				<div class='row'>
 					<div class='col-md-6'>
-				  		<label for='select_product'>Select products in which you like to invest</label>
+				  		<label for='select_item' ng-show="investment_type === 'product_wise'">Select products in which you like to invest</label>
+				  		<label for='select_item' ng-show="investment_type === 'sector_wise'">Select sectors in which you like to invest</label>
 				  	</div>
 				</div>
 				<div class='row'>
 				  	<div class='col-md-2'>
-						<select id='select_product' class='form-control' ng-model="selected_product" ng-options="product.key for product in products" ng-change="selectedProducts.push(selected_product)"></select>
+						<select id='select_item' class='form-control' ng-model="selected_item" ng-options="item.key for item in all_items" ng-change="selected_items.push(selected_item)" ng-show='investment_type'></select>
 					</div>
 				</div>
 
 				<div style='margin-top:10px'>
 					<div class='row'>
 						<div class='col-md-6'>
-						  	<table class="table table-condensed table-bordered table-striped" ng-show="selectedProducts.length>0">
+						  	<table class="table table-condensed table-bordered table-striped" ng-show="selected_items.length>0">
 						  		<thead>
 							  		<tr>
-										<th>Product</th>
-										<th>Investment</th> 
-										<th>Change Investment</th>
+							  			<th>Select</th>
+										<th ng-show="investment_type === 'product_wise'">Product</th>
+										<th ng-show="investment_type === 'sector_wise'">Sector</th>
+										<th>Investment</th>
 										<th>Remove</th>
 									</tr>
 								</thead>
 								<tbody>
-									<tr ng-repeat="selected_product in selectedProducts track by $index">
-										<td>{{selected_product.key}}</td>
-										<td>{{selected_product.value}}</td>
-										<td><input type='range' min='0' max='100' value={{selected_product.value}} ng-model="selected_product.value" ng-change="change_slider()"></td>
-										<td><a href ng-click="selectedProducts.splice($index, 1)">X</a></td>
+									<tr ng-repeat="selected_item in selected_items track by $index">
+										<td><input type="radio" id="table_radio" name="table_radio" ng-click='selected_radio($index)'/></td>
+										<td>{{selected_item.key}}</td>
+										<td>{{selected_item.value}}</td>
+										<td><a href ng-click="selected_items.splice($index, 1)">X</a></td>
 									</tr>
 								</tbody>
 							</table>
 						</div>
 					</div>
 				</div>
-			</div>
 		</div>
 
-		<!-- code to handle investment in sectors-->
-		<div id='div_for_sectors'>
-			<div ng-show="investment_type === 'sector_wise'">
-				<div class='row'>
-	  				<div class='col-md-6'>
-		  				<label for='select_sector'>Select sectors in which you like to invest</label>
-		  			</div>
-		  		</div>
-		  		<div class='row'>
-			  		<div class="col-md-2">
-			  			<select id='select-sector' ng-model="selected_sector" class='form-control' ng-options="sector.key for sector in sectors" ng-change="selectedSectors.push(selected_sector)"></select>
-			  		</div>
-		  		</div>
-
-			  	<div style='margin-top:10px'>
-				  	<div class='row'>
-				  		<div class='col-md-6'>
-					  		<table class="table table-condensed table-bordered table-striped" ng-show="selectedSectors.length>0">
-						  		<tr>
-					    			<th>Sector</th>
-					    			<th>Investment</th> 
-					    			<th>Change Investment</th>
-					    			<th>Remove</th>
-					  			</tr>
-								<tr ng-repeat="selected_sector in selectedSectors track by $index">
-									<td>{{selected_sector.key}}</td>
-									<td>{{selected_sector.value}}</td>
-									<td><input type='range' min='0' max='100' value={{selected_sector.value}} ng-model="selected_sector.value" ng-change="change_slider()"></td>
-									<td><a href ng-click="selectedSectors.splice($index, 1)">X</a></td>
-								</tr>
-							</table>
-						</div>
-					</div>
-				</div>
+		
+		<!-- code for slider -->
+		<div class="row">
+			<div class='col-md-3'>
+				<input type='range' min='0' max='{{amount}}' step="0.25" ng-model="selected_items[index_of_selected_item].value" ng-change="change_slider()" ng-show='index_of_selected_item != null'/>
 			</div>
 		</div>
 
@@ -144,7 +115,7 @@
 			<div class='row'>
 				<div class='col-md-6'>
 			  		<div ng-controller="PieChartCtrl">
-						<div google-chart chart="chart" style="border:1px inset black;width:352px" ng-show="(selectedProducts.length >0 && investment_type === 'product_wise')||(selectedSectors.length >0 && investment_type === 'sector_wise')"></div>
+						<div google-chart chart="chart" style="border:1px inset black;width:352px" ng-show="selected_items.length>0"> </div>
 					</div>
 				</div>
 			</div>
@@ -159,16 +130,15 @@
 	    	</div>
 	    </div>
 	</form>
-</div><!-- container closes -->
+</div>
 
 <!-- scripts section -->
-
 <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.js"></script>
 <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.0.js"></script>
 <script type="text/javascript" src="/js/angular_script.js"></script>
 <script src="http://bouil.github.io/angular-google-chart/ng-google-chart.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js'></script>
-<script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.5.0/bootstrap-table.min.js'></script>
+<!--<script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.5.0/bootstrap-table.min.js'></script>-->
 </body>
 </html>
